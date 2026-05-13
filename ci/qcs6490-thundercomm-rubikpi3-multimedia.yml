@@ -1,0 +1,14 @@
+# LOCAL-ONLY: test build for qcom-multimedia-image on Thundercomm RUBIK Pi 3.
+header:
+  version: 14
+  includes:
+    - ci/qcs6490-thundercomm-rubikpi3.yml
+    - ci/qcom-distro.yml
+
+repos:
+  meta-qcom:
+    url: https://github.com/qualcomm-linux/meta-qcom
+    branch: master
+
+target:
+  - qcom-multimedia-image

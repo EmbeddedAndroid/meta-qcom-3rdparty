@@ -1,0 +1,33 @@
+[Unit]
+Description=Weston RDP backend (headless, port 3389)
+After=weston.service weston-rdp-cert.service
+Wants=weston-rdp-cert.service
+Requires=weston-rdp-cert.service
+
+[Service]
+Type=simple
+Restart=on-failure
+RestartSec=5
+User=weston
+Group=weston
+WorkingDirectory=/home/weston
+PAMName=weston-autologin
+Environment=XDG_RUNTIME_DIR=/run/user/1000
+
+# Headless Weston with the RDP backend, running on its own Wayland socket
+# (wayland-rdp) so the primary DRM Weston is undisturbed.
+ExecStart=/usr/bin/weston \
+    --backend=rdp-backend.so \
+    --shell=desktop-shell.so \
+    --socket=wayland-rdp \
+    --no-config \
+    --modules=systemd-notify.so \
+    --rdp-tls-cert=/var/lib/weston/rdp-tls.crt \
+    --rdp-tls-key=/var/lib/weston/rdp-tls.key
+
+StandardInput=null
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

@@ -16,4 +16,7 @@ RRECOMMENDS:${PN}-firmware = " \
     linux-firmware-qcom-vpu \
     linux-firmware-qcom-qcs6490-thundercomm-rubikpi3-audio \
     linux-firmware-qcom-qcs6490-compute \
+    renesas-usb-fw \
+    bt-bcm4345c5 \
+    rubikpi3-wifi-fw \
 "

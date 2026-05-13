@@ -1,0 +1,18 @@
+[Unit]
+Description=Generate self-signed TLS cert for Weston RDP
+ConditionPathExists=!/var/lib/weston/rdp-tls.crt
+Before=weston.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStartPre=/usr/bin/mkdir -p /var/lib/weston
+ExecStart=/usr/bin/openssl req -x509 -nodes -newkey rsa:2048 \
+    -subj "/CN=rubikpi3" -days 3650 \
+    -keyout /var/lib/weston/rdp-tls.key \
+    -out /var/lib/weston/rdp-tls.crt
+ExecStartPost=/usr/bin/chmod 600 /var/lib/weston/rdp-tls.key
+ExecStartPost=/usr/bin/chmod 644 /var/lib/weston/rdp-tls.crt
+
+[Install]
+WantedBy=multi-user.target
