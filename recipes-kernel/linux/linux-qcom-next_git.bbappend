@@ -7,3 +7,9 @@ FILESEXTRAPATHS:prepend:radxa-dragon-q6a := "${THISDIR}/radxa-dragon-q6a:"
 SRC_URI:append:radxa-dragon-q6a = " \
 			file://realtek-eth-8169.cfg \
 "
+
+FILESEXTRAPATHS:prepend:qcs6490-thundercomm-rubikpi3 := "${THISDIR}/qcs6490-thundercomm-rubikpi3:"
+
+SRC_URI:append:qcs6490-thundercomm-rubikpi3 = " \
+			file://bt-bcm.cfg \
+"
