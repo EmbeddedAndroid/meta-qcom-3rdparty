@@ -1,0 +1,59 @@
+From f0283295633f9452acb7b0a9ff7e6cb5ca71b5cd Mon Sep 17 00:00:00 2001
+From: Tyler Baker <tyler.baker@oss.qualcomm.com>
+Date: Sun, 7 Jun 2026 04:40:34 +0000
+Subject: [PATCH] PCI: Disable ASPM L1ss for QCA2066 behind PI7C9X2G304 switch
+
+On Qualcomm SA8775P/QCS8300 platforms the QCA2066 (WCN6855-class,
+17cb:1103) Wi-Fi may be wired behind a Pericom/Diodes PI7C9X2G304
+(12d8:b304) PCIe switch. The switch does not reliably exit ASPM L1
+PM substates: shortly after the link idles into L1.1 the endpoint
+stops servicing DMA and MSIs, ath11k WMI commands time out and the
+radio becomes unusable. The root complex and CLKREQ# are fine; the
+fault is in the switch.
+
+Disable ASPM L1 substates for endpoints directly behind this switch,
+leaving plain L1 and L0s intact so parts attached without the
+PI7C9X2G304 keep full ASPM.
+
+Validated on a QCS8275 board.
+
+Upstream-Status: Pending
+Signed-off-by: Tyler Baker <tyler.baker@oss.qualcomm.com>
+---
+ drivers/pci/quirks.c | 24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
+
+diff --git a/drivers/pci/quirks.c b/drivers/pci/quirks.c
+--- a/drivers/pci/quirks.c
++++ b/drivers/pci/quirks.c
+@@ -2536,6 +2536,30 @@
+ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_PASEMI, 0xa002, quirk_disable_aspm_l0s_l1);
+ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_HUAWEI, 0x1105, quirk_disable_aspm_l0s_l1);
+ 
++/* Pericom/Diodes PI7C9X2G304 PCIe Gen2 switch */
++#define PCI_DEVICE_ID_PERICOM_PI7C9X2G304	0xb304
++
++/*
++ * The PI7C9X2G304 does not reliably exit ASPM L1 PM substates:
++ * shortly after a downstream link idles into L1.1, the device
++ * behind it stops servicing DMA and MSIs (e.g. ath11k WMI commands
++ * time out). Disable L1ss only for endpoints directly behind this
++ * switch. The fixup runs on the endpoint rather than the switch so
++ * pci_disable_link_state() acts on the endpoint's upstream link.
++ */
++static void quirk_disable_aspm_l1ss(struct pci_dev *dev)
++{
++	struct pci_dev *parent = pci_upstream_bridge(dev);
++
++	if (!parent || parent->vendor != PCI_VENDOR_ID_PERICOM ||
++	    parent->device != PCI_DEVICE_ID_PERICOM_PI7C9X2G304)
++		return;
++
++	pci_info(dev, "disabling ASPM L1ss behind PI7C9X2G304 switch\n");
++	pci_disable_link_state(dev, PCIE_LINK_STATE_L1_1 | PCIE_LINK_STATE_L1_2);
++}
++DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_QCOM, 0x1103, quirk_disable_aspm_l1ss);
++
+ /*
+  * Some Pericom PCIe-to-PCI bridges in reverse mode need the PCIe Retrain
+  * Link bit cleared after starting the link retrain process to allow this
