@@ -15,4 +15,13 @@ KBUILD_CONFIG_EXTRA:remove:ventuno-q = "${S}/arch/arm64/configs/prune.config ${S
 SRCBRANCH:ventuno-q = "nobranch=1"
 SRCBRANCH:class-devupstream:ventuno-q = "branch=early/hwe/monza"
 SRC_URI:remove:ventuno-q = "git://github.com/qualcomm-linux/kernel.git;${SRCBRANCH};protocol=https"
-SRC_URI:append:ventuno-q = " git://github.com/qualcomm-linux/kernel-topics.git;${SRCBRANCH};protocol=https file://configs/monza.cfg file://0001-PCI-Disable-ASPM-L1ss-for-QCA2066-behind-PI7C9X2G304.patch file://0002-usb-gadget-f_fs-initialize-reset_work-at-allocation.patch"
+SRC_URI:append:ventuno-q = " git://github.com/qualcomm-linux/kernel-topics.git;${SRCBRANCH};protocol=https file://configs/monza.cfg file://0001-PCI-Disable-ASPM-L1ss-for-QCA2066-behind-PI7C9X2G304.patch file://0002-usb-gadget-f_fs-initialize-reset_work-at-allocation.patch file://0003-fastrpc-fix-audiopd-initial-alloc.patch file://0004-fastrpc-remove-buf-from-list-before-unmap.patch file://0005-fastrpc-buf-free-accept-null.patch"
+
+# fastrpc bug-fix backports (upstream "misc: fastrpc: Add missing bug
+# fixes" v4, Jianping Li, lore 20260409) to get cDSP/aDSP FastRPC
+# session creation working (fastrpc_test fails on stock 107224669d4).
+# Same series rubikpi3 carries. Authored against mainline, so they apply
+# with offset/fuzz at our kernel-topics SRCREV; demote patch-fuzz from
+# error to warning so the build proceeds. Refresh on SRCREV bumps.
+ERROR_QA:remove:ventuno-q = "patch-fuzz"
+WARN_QA:append:ventuno-q = " patch-fuzz"
